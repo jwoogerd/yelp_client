@@ -8,9 +8,10 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate {
+    
     @IBOutlet weak var businessesTableView: UITableView!
+
     var businesses: [Business]!
     
     required init(coder aDecoder: NSCoder) {
@@ -20,13 +21,16 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        Business.searchWithTerm("Thai", completion: { (businesses: [Business]!, error: NSError!) -> Void in
+        Business.searchWithTerm("Restaurants", completion: { (businesses: [Business]!, error: NSError!) -> Void in
             self.businesses = businesses
             self.businessesTableView.reloadData()
         })
         
         businessesTableView.dataSource = self
         businessesTableView.delegate = self
+        // self.navigationItem.titleView = searchBar
+        businessesTableView.rowHeight = UITableViewAutomaticDimension
+        businessesTableView.estimatedRowHeight = 120
     }
 
     override func didReceiveMemoryWarning() {
@@ -45,25 +49,23 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
 
         let cell = tableView.dequeueReusableCellWithIdentifier("BusinessCell", forIndexPath: indexPath) as! BusinessCell
-        let business = businesses![indexPath.row]
-
-        cell.nameLabel.text = business.name
-        cell.addressLabel.text = business.address
-        cell.categoriesLabel.text = business.categories
-        cell.posterImageView.setImageWithURL(business.imageURL)
-        cell.ratingImageView.setImageWithURL(business.ratingImageURL)
+        cell.business = businesses![indexPath.row]
         return cell
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String : AnyObject]) {
+        var categories = filters["categories"] as? [String]
+        Business.searchWithTerm("Restaurants", sort: nil, categories: categories, deals: nil)
+            {(businesses: [Business]!, error: NSError!) -> Void in
+                self.businesses = businesses
+                self.businessesTableView.reloadData()
+            }
     }
-    */
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let navigationController = segue.destinationViewController as! UINavigationController
+        let filtersViewController = navigationController.topViewController as! FiltersViewController
+        filtersViewController.delegate = self
+    }
 
 }
