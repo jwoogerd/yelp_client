@@ -8,11 +8,12 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate, UISearchBarDelegate {
     
     @IBOutlet weak var businessesTableView: UITableView!
 
     var businesses: [Business]!
+    let searchBar = UISearchBar()
     
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -26,9 +27,11 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             self.businessesTableView.reloadData()
         })
         
+        self.navigationItem.titleView = searchBar
+        searchBar.placeholder = "e.g. Thai, Coffee"
+        searchBar.delegate = self
         businessesTableView.dataSource = self
         businessesTableView.delegate = self
-        // self.navigationItem.titleView = searchBar
         businessesTableView.rowHeight = UITableViewAutomaticDimension
         businessesTableView.estimatedRowHeight = 120
     }
@@ -54,12 +57,28 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String : AnyObject]) {
-        var categories = filters["categories"] as? [String]
-        Business.searchWithTerm("Restaurants", sort: nil, categories: categories, deals: nil)
+        let categories = filters["categories"] as? [String]
+        let hasDeal = filters["deal"] as? Bool
+        let sortMode = YelpSortMode(rawValue: filters["sort"] as! Int)
+        let METERS_PER_MILE = 1609
+        var radii = [1, 2, 5]  // miles
+        let radius = radii[filters["radius"] as! Int] * METERS_PER_MILE
+        
+        Business.searchWithTerm("Restaurants", sort: sortMode, categories: categories, deals: hasDeal, radius: radius)
             {(businesses: [Business]!, error: NSError!) -> Void in
                 self.businesses = businesses
                 self.businessesTableView.reloadData()
             }
+    }
+    
+    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        Business.searchWithTerm(searchBar.text as String!) {(businesses: [Business]!, error: NSError!) ->
+            Void in
+                self.businesses = businesses
+                self.businessesTableView.reloadData()
+        }
+        searchBar.text = ""
+        searchBar.endEditing(true)
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

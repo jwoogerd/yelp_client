@@ -8,16 +8,24 @@
 
 import UIKit
 
+enum Sections: Int {
+    case  Sort = 0, Radius, Deals, Categories
+}
+
 @objc protocol FiltersViewControllerDelegate: class {
     optional func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String: AnyObject])
 }
 
-class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate {
+class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SortCellDelegate, SwitchCellDelegate {
 
     @IBOutlet weak var filtersTableView: UITableView!
     
     var categories: [[String: String]]!
     var switchStates = [Int: Bool]()
+    var hasDeal = false
+    var sortModeIndex = 0
+    var radiusIndex = 0
+    let filterSections = ["Sort", "Radius", "Deals", "Categories"]
     weak var delegate: FiltersViewControllerDelegate?
 
     override func viewDidLoad() {
@@ -36,20 +44,62 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     
     func switchCell(switchCell: SwitchCell, didChangeValue value: Bool) {
         let indexPath = filtersTableView.indexPathForCell(switchCell)!
-        switchStates[indexPath.row] = value
+        if indexPath.section == Sections.Categories.rawValue {
+            switchStates[indexPath.row] = value
+        } else if indexPath.section == Sections.Deals.rawValue {
+            hasDeal = value
+        }
+    }
+   
+    func sortCell(sortCell: SortCell, indexSelected index: Int) {
+        let indexPath = filtersTableView.indexPathForCell(sortCell)!
+        if indexPath.section == Sections.Sort.rawValue {
+            self.sortModeIndex = index
+        } else if indexPath.section == Sections.Radius.rawValue {
+            self.radiusIndex = index
+        }
+    }
+
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return filterSections.count
+    }
+    
+    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+            return filterSections[section]
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        switch section {
+        case Sections.Categories.rawValue:
+            return categories.count
+        default:
+            return 1
+        }
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        
-        let cell = tableView.dequeueReusableCellWithIdentifier("SwitchCell", forIndexPath: indexPath) as! SwitchCell
-        cell.switchLabel.text = categories[indexPath.row]["name"]
-        cell.delegate = self
-        cell.onSwitch.on = switchStates[indexPath.row] ?? false
-        return cell
+        switch indexPath.section {
+        case Sections.Sort.rawValue, Sections.Radius.rawValue:
+            let cell = tableView.dequeueReusableCellWithIdentifier("SortCell", forIndexPath: indexPath) as! SortCell
+            cell.delegate = self
+            if indexPath.section == Sections.Sort.rawValue {
+                cell.setLabels(["Best Match", "Distance", "Rating"])
+            } else {
+                cell.setLabels(["1 mile", "2 miles", "5 miles"])
+            }
+            return cell
+        default:
+            let cell = tableView.dequeueReusableCellWithIdentifier("SwitchCell", forIndexPath: indexPath) as! SwitchCell
+            cell.delegate = self
+            if indexPath.section == Sections.Categories.rawValue {
+                cell.switchLabel.text = categories[indexPath.row]["name"]
+                cell.onSwitch.on = switchStates[indexPath.row] ?? false
+            } else {
+                cell.switchLabel.text = "Offering a Deal"
+                cell.onSwitch.on = self.hasDeal ?? false
+            }
+            return cell
+        }
     }
     
     @IBAction func onSearch(sender: AnyObject) {
@@ -61,11 +111,13 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
                 selectedCategories.append(self.categories[row]["code"]!)
             }
         }
-        
         if selectedCategories.count > 0 {
             filters["categories"] = selectedCategories
         }
-        
+        filters["deal"] = self.hasDeal
+        filters["sort"] = self.sortModeIndex
+        filters["radius"] = self.radiusIndex
+       
         delegate?.filtersViewController?(self, didUpdateFilters: filters)
         dismissViewControllerAnimated(true, completion: nil)
     }
@@ -73,7 +125,6 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     @IBAction func onCancel(sender: AnyObject) {
         dismissViewControllerAnimated(true, completion: nil)
     }
-    
     
     func yelpCategories() -> [[String: String]] {
         return [["name" : "Afghan", "code": "afghani"],

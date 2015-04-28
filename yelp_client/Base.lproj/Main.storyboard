@@ -134,7 +134,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="89" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="pzj-za-jIf">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="pzj-za-jIf">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
@@ -167,6 +167,29 @@
                                         <connections>
                                             <outlet property="onSwitch" destination="X90-CP-Gn4" id="0ib-lg-4bk"/>
                                             <outlet property="switchLabel" destination="nhE-4N-v9V" id="7Sz-EM-ILi"/>
+                                        </connections>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" restorationIdentifier="SortCell" selectionStyle="default" indentationWidth="10" reuseIdentifier="SortCell" rowHeight="56" id="x8K-mk-jrt" customClass="SortCell" customModule="yelp_client" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="x8K-mk-jrt" id="eAd-Sj-Ole">
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="rq8-Iz-Ecr">
+                                                    <rect key="frame" x="8" y="14" width="304" height="29"/>
+                                                    <segments>
+                                                        <segment title="Best Match"/>
+                                                        <segment title="Distance"/>
+                                                        <segment title="Rating"/>
+                                                    </segments>
+                                                    <connections>
+                                                        <action selector="onValueChanged:" destination="x8K-mk-jrt" eventType="valueChanged" id="Ffc-bi-Lff"/>
+                                                    </connections>
+                                                </segmentedControl>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="sortSegmentedControl" destination="rq8-Iz-Ecr" id="N4d-S8-xIr"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
